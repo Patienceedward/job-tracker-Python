@@ -1,3 +1,4 @@
+import pdfplumber # type: ignore
 import re
 
 def extract_keywords(text):
@@ -5,17 +6,18 @@ def extract_keywords(text):
     stopwords = {"the", "and", "a", "of", "to", "in", "for", "with", "on", "is", "as", "by"}
     return set(words) - stopwords
 
-def read_file(filepath):
+def read_pdf(file_obj):  # ✅ updated to work with uploaded files
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        print(f"❌ File not found: {filepath}")
+        with pdfplumber.open(file_obj) as pdf:
+            return ''.join(page.extract_text() or '' for page in pdf.pages)
+    except Exception as e:
+        print(f"❌ Error reading PDF: {e}")
         return ""
 
+
 def compare_keywords(job_file, resume_file):
-    job_text = read_file(job_file)
-    resume_text = read_file(resume_file)
+    job_text = read_pdf(job_file)
+    resume_text = read_pdf(resume_file)
 
     job_keywords = extract_keywords(job_text)
     resume_keywords = extract_keywords(resume_text)
